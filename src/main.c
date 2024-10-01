@@ -155,6 +155,7 @@ void shell_mode() {
         getcwd(current_dir_buffer, 100);
         sprintf(prompt_buffer, WHT "[%s] " BGRN "$ " WHT, current_dir_buffer);
         input_buffer = readline(prompt_buffer);
+        if (strlen(input_buffer) == 0) continue;
         add_history(input_buffer);
         save_line(input_buffer);
         size_t input_len = strlen(input_buffer);
