@@ -104,7 +104,49 @@ void restore_lines() {
     if (this_line) free(this_line);
 }
 
+bool str_contains(char *str, char ch) {
+    size_t len = strlen(str);
+    for (int c = 0; c < len; c++)
+        if (str[c] == ch) return true;
+    return false;
+}
+
+void file_mode(char *filename, bool required) {
+    FILE *f;
+    char *this_line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    f = fopen(filename, "r");
+    if (f == NULL) {
+        if (required) {
+            printf("Couldn't open \"%s\".\n", filename);
+            exit(1);
+        } else {
+            return;
+        }
+    }
+
+    while ((read = getline(&this_line, &len, f)) != -1) {
+        if (read == 1) continue;
+        if (!str_contains(this_line, 10)) {
+            this_line[read    ] = 10;
+            this_line[read + 1] = 0;
+        }
+        if (this_line[0] != 10) run_line(this_line);
+    }
+
+    fclose(f);
+    if (this_line) free(this_line);
+}
+
 void shell_mode() {
+    // run ~/.unbashrc 
+    const char *home = getenv("HOME");
+    char path_buffer[100];
+    snprintf(path_buffer, sizeof(path_buffer), "%s/%s", home, ".unbashrc");
+    file_mode(path_buffer, false);
+
     restore_lines();
     static char *input_buffer;
     char current_dir_buffer[100];
@@ -122,43 +164,11 @@ void shell_mode() {
     }
 }
 
-bool str_contains(char *str, char ch) {
-    size_t len = strlen(str);
-    for (int c = 0; c < len; c++)
-        if (str[c] == ch) return true;
-    return false;
-}
-
-void file_mode(char *filename) {
-    FILE *f;
-    char *this_line = NULL;
-    size_t len = 0;
-    ssize_t read;
-
-    f = fopen(filename, "r");
-    if (f == NULL) {
-        printf("Couldn't open \"%s\".\n", filename);
-        exit(1);
-    }
-
-    while ((read = getline(&this_line, &len, f)) != -1) {
-        if (read == 1) continue;
-        if (!str_contains(this_line, 10)) {
-            this_line[read    ] = 10;
-            this_line[read + 1] = 0;
-        }
-        if (this_line[0] != 10) run_line(this_line);
-    }
-
-    fclose(f);
-    if (this_line) free(this_line);
-}
-
 int main(int argc, char **argv) {
     if (argc == 1)
         shell_mode();
     else if (argc == 2)
-        file_mode(argv[1]);
+        file_mode(argv[1], true);
     else
         printf("Too many arguments.\n");
 }

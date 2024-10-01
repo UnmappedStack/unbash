@@ -5,6 +5,8 @@ This is a simple shell that I implemented in C, which can run programs, supports
 
 Most importantly - **Unbash is it's own build system!** That's right, the compilation script for Unbash is an Unbash script.
 
+Unbash has support for a startup script. Create the file `.unbashrc` in your home directory (`~/.unbashrc`), and put in it some unbash commands. These will be run each time that unbash is run.
+
 ## Building
 Simply clone the repo and run the compilation script.
 ```bash
