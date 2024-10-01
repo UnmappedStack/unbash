@@ -73,7 +73,39 @@ void run_line(char *line_o) {
     run_program(argv[0], argv);
 }
 
+void save_line(char *line) {
+    size_t line_len = strlen(line);
+    const char *home = getenv("HOME");
+    char path_buffer[100];
+    snprintf(path_buffer, sizeof(path_buffer), "%s/%s", home, ".unbash_history");
+    FILE *history_f = fopen(path_buffer, "a");
+    if (history_f == NULL) {
+        printf("Couldn't open file.\n");
+        return;
+    }
+    fprintf(history_f, "%s\n", line);
+    fclose(history_f);
+}
+
+void restore_lines() {
+    const char *home = getenv("HOME");
+    char path_buffer[100];
+    snprintf(path_buffer, sizeof(path_buffer), "%s/%s", home, ".unbash_history");
+    size_t len = 0;
+    ssize_t read;
+    char *this_line = NULL;
+    FILE *history_f = fopen(path_buffer, "r");
+    if (history_f == NULL) return;
+    while ((read = getline(&this_line, &len, history_f)) != -1) {
+        this_line[read - 1] = 0;
+        add_history(this_line);
+    }
+    fclose(history_f);
+    if (this_line) free(this_line);
+}
+
 void shell_mode() {
+    restore_lines();
     static char *input_buffer;
     char current_dir_buffer[100];
     char prompt_buffer[100];
@@ -82,6 +114,7 @@ void shell_mode() {
         sprintf(prompt_buffer, WHT "[%s] " BGRN "$ " WHT, current_dir_buffer);
         input_buffer = readline(prompt_buffer);
         add_history(input_buffer);
+        save_line(input_buffer);
         size_t input_len = strlen(input_buffer);
         input_buffer[input_len    ] = 10;
         input_buffer[input_len + 1] = 0;
