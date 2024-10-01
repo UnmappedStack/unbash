@@ -52,7 +52,14 @@ void run_line(char *line_o) {
             line[c] = 0;
             num_args++;
             argv = realloc(argv, num_args * sizeof(char*));
-            argv[num_args - 1] = (char*) sym_start;
+            char **this_arg = &argv[num_args - 1];
+            *this_arg = (char*) sym_start;
+            if ((*this_arg)[0] == '~' && (*this_arg)[1] == '/') {
+                char *this_arg_new = (char*) malloc(100);
+                const char *home = getenv("HOME");
+                snprintf(this_arg_new, 100, "%s/%s", home, (*this_arg) + 2);
+                *this_arg = this_arg_new;
+            }
             sym_start = (size_t) &line[c + 1];
         }
     }
