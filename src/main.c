@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 #include <utils.h>
 
 // forks, execs, then waits
@@ -54,8 +56,14 @@ void run_line(char *line_o) {
             sym_start = (size_t) &line[c + 1];
         }
     }
-    argv = realloc(argv, (num_args + 1) * sizeof(char*));
-    argv[num_args - 1] = NULL;
+    if (argv[num_args - 2][0] == 0) {
+        argv[num_args - 2] = NULL;
+    } else if (argv[num_args - 1][0] == 0) {
+        argv[num_args - 1] = NULL;
+    } else {
+        argv = realloc(argv, (num_args + 1) * sizeof(char*));
+        argv[num_args] = NULL;
+    }
     if (memcmp("cd", line_o, 2) == 0) {
         if (argv[1] == NULL) return;
         int cd_status = chdir(argv[1]);
@@ -66,12 +74,17 @@ void run_line(char *line_o) {
 }
 
 void shell_mode() {
-    static char input_buffer[100];
+    static char *input_buffer;
     char current_dir_buffer[100];
+    char prompt_buffer[100];
     while (true) {
         getcwd(current_dir_buffer, 100);
-        printf(WHT "[%s] " BGRN "$ " WHT, current_dir_buffer);
-        fgets(input_buffer, 100, stdin);
+        sprintf(prompt_buffer, WHT "[%s] " BGRN "$ " WHT, current_dir_buffer);
+        input_buffer = readline(prompt_buffer);
+        add_history(input_buffer);
+        size_t input_len = strlen(input_buffer);
+        input_buffer[input_len    ] = 10;
+        input_buffer[input_len + 1] = 0;
         run_line(input_buffer);
     }
 }
@@ -101,7 +114,7 @@ void file_mode(char *filename) {
             this_line[read    ] = 10;
             this_line[read + 1] = 0;
         }
-        run_line(this_line);
+        if (this_line[0] != 10) run_line(this_line);
     }
 
     fclose(f);

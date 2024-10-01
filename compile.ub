@@ -1,3 +1,3 @@
-gcc src/main.c -o unbash -I include -g
+gcc src/main.c -o unbash -I include -g -lreadline
 
 ./unbash
