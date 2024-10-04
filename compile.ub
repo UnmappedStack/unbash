@@ -1,3 +1,6 @@
-gcc src/main.c -o unbash -I include -g -lreadline
+gcc src/main.c -o obj/main.o -I include -g -lreadline -c
+gcc src/vector.c -o obj/vector.o -I include -g -c
+
+gcc -o unbash obj/main.o obj/vector.o -lreadline -g
 
 ./unbash

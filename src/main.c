@@ -83,7 +83,7 @@ void run_line(char *line_o) {
 void save_line(char *line) {
     size_t line_len = strlen(line);
     const char *home = getenv("HOME");
-    char path_buffer[100];
+    char path_buffer[150];
     snprintf(path_buffer, sizeof(path_buffer), "%s/%s", home, ".unbash_history");
     FILE *history_f = fopen(path_buffer, "a");
     if (history_f == NULL) {
@@ -156,8 +156,8 @@ void shell_mode() {
 
     restore_lines();
     static char *input_buffer;
-    char current_dir_buffer[100];
-    char prompt_buffer[100];
+    char current_dir_buffer[150];
+    char *prompt_buffer = (char*) malloc(512);
     while (true) {
         getcwd(current_dir_buffer, 100);
         sprintf(prompt_buffer, WHT "[%s] " BGRN "$ " WHT, current_dir_buffer);
