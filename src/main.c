@@ -94,23 +94,6 @@ void save_line(char *line) {
     fclose(history_f);
 }
 
-void restore_lines() {
-    const char *home = getenv("HOME");
-    char path_buffer[100];
-    snprintf(path_buffer, sizeof(path_buffer), "%s/%s", home, ".unbash_history");
-    size_t len = 0;
-    ssize_t read;
-    char *this_line = NULL;
-    FILE *history_f = fopen(path_buffer, "r");
-    if (history_f == NULL) return;
-    while ((read = getline(&this_line, &len, history_f)) != -1) {
-        this_line[read - 1] = 0;
-        add_history(this_line);
-    }
-    fclose(history_f);
-    if (this_line) free(this_line);
-}
-
 bool str_contains(char *str, char ch) {
     size_t len = strlen(str);
     for (int c = 0; c < len; c++)
@@ -153,22 +136,18 @@ void shell_mode() {
     char path_buffer[100];
     snprintf(path_buffer, sizeof(path_buffer), "%s/%s", home, ".unbashrc");
     file_mode(path_buffer, false);
-
-    restore_lines();
     static char *input_buffer;
     char current_dir_buffer[150];
     char *prompt_buffer = (char*) malloc(512);
     while (true) {
         getcwd(current_dir_buffer, 100);
-        sprintf(prompt_buffer, WHT "[%s] " BGRN "$ " WHT, current_dir_buffer);
-        input_buffer = readline(prompt_buffer);
-        if (strlen(input_buffer) == 0) continue;
-        add_history(input_buffer);
-        save_line(input_buffer);
-        size_t input_len = strlen(input_buffer);
-        input_buffer[input_len    ] = 10;
-        input_buffer[input_len + 1] = 0;
-        run_line(input_buffer);
+        printf(WHT "[%s] " BGRN "$ " WHT, current_dir_buffer);
+        fgets(prompt_buffer, 512, stdin);
+        if (strlen(prompt_buffer) == 0) continue;
+        size_t input_len = strlen(prompt_buffer);
+        prompt_buffer[input_len    ] = 10;
+        prompt_buffer[input_len + 1] = 0;
+        run_line(prompt_buffer);
     }
 }
 
